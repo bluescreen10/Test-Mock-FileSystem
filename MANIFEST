@@ -1,12 +1,14 @@
 Changes
 ignore.txt
 lib/Mock/FileSystem.pm
+lib/Test/Mock/FileSystem.pm
 Makefile.PL
 MANIFEST			This list of files
 README
 t/00-load.t
 t/01-basic-file-opertations.t
 t/02-basic-dir-operations.t
+t/03-package-basic.t
 t/boilerplate.t
 t/manifest.t
 t/pod-coverage.t
