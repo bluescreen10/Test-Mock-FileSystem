@@ -11,11 +11,11 @@ Mock::FileSystem - Simulate filesystem resources to help testing modules that de
 
 =head1 VERSION
 
-Version 0.01
+Version 0.01_001
 
 =cut
 
-our $VERSION = '0.01';
+our $VERSION = '0.01_001';
 
 =head1 SYNOPSIS
 
@@ -220,13 +220,12 @@ sub _closedir {
 
 sub _mkdir { }
 
-sub _open {
+sub _open (\[*$];@$) {
+    my ( $fh, $access, $name ) = @_;
 
-    #my ( $fh, $access, $name ) = @_;
+    $name ||= '';
+    my $compound = "$access $name";
 
-    my $name = $_[2] || '';
-    my $compound = "$_[1] $_[2]";
-    my $access;
     if ( $compound =~ /\s*(<|>|>>|\+<|\+>|\+>>)?\s*(\S+)\s*/ ) {
         $access = $1 || '<';
         $name = $2;
@@ -242,12 +241,11 @@ sub _open {
         return 0;
     }
 
-    return CORE::open( $_[0], $access, $entry->{content} );
+    return CORE::open( $$fh, $access, $entry->{content} );
 }
 
-sub _opendir {
-    my $dh   = \$_[0];
-    my $path = $_[1];
+sub _opendir (\[*$];$) {
+    my ( $dh, $path ) = @_;
 
     my $entry = _getpath($path);
 
