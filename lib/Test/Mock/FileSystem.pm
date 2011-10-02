@@ -414,19 +414,19 @@ You can also look for information at:
 
 =item * RT: CPAN's request tracker (report bugs here)
 
-L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Mock-FileSystem>
+L<http://rt.cpan.org/NoAuth/Bugs.html?Dist=Test-Mock-FileSystem>
 
 =item * AnnoCPAN: Annotated CPAN documentation
 
-L<http://annocpan.org/dist/Mock-FileSystem>
+L<http://annocpan.org/dist/Test-Mock-FileSystem>
 
 =item * CPAN Ratings
 
-L<http://cpanratings.perl.org/d/Mock-FileSystem>
+L<http://cpanratings.perl.org/d/Test-Mock-FileSystem>
 
 =item * Search CPAN
 
-L<http://search.cpan.org/dist/Mock-FileSystem/>
+L<http://search.cpan.org/dist/Test-Mock-FileSystem/>
 
 =back
 
@@ -436,7 +436,7 @@ L<http://search.cpan.org/dist/Mock-FileSystem/>
 
 =head1 LICENSE AND COPYRIGHT
 
-Copyright 2011 Mariano Waghlmann.
+Copyright 2011 Mariano Wahlmann.
 
 This program is free software; you can redistribute it and/or modify it
 under the terms of either: the GNU General Public License as published
