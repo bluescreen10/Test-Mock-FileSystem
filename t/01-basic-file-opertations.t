@@ -3,14 +3,8 @@ use warnings;
 use Test::More tests => 7;
 use Test::Mock::FileSystem;
 
-my $file;
+my $file = File::Spec->rel2abs('tmp_file');
 
-if ( $^O eq 'Win32' ) {
-    $file = 'C:\temp\dir\test_file';
-}
-else {
-    $file = '/tmp/dir/test_file';
-}
 mock_file $file;
 
 # Write

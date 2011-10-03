@@ -4,7 +4,7 @@ use warnings;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
-    NAME                => 'Mock::FileSystem',
+    NAME                => 'Test::Mock::FileSystem',
     AUTHOR              => q{Mariano Waghlmann <dichoso _at_ gmail.com>},
     VERSION_FROM        => 'lib/Test/Mock/FileSystem.pm',
     ABSTRACT_FROM       => 'lib/Test/Mock/FileSystem.pm',

@@ -117,31 +117,31 @@ This will create a C<$file> in the virtual file system and the parents directori
 
 =over 4
 
-=item C<content =E<gt> $content>
+=item I<content =E<gt> $content>
 
 The fills the virtual file with C<$content>. By default file have no content
 
-=item C<access =E<gt> $access>
+=item I<mode =E<gt> $mode>
 
-Use this option to control the access bits of the file. The available bits are B<u g k r w x>. So for example if C<$access> is the value C<oct("6")> the file will be readable and writable.
+Use this option to control the access bits for the virtual file. These are equivalent to the the access bit in Linux/Unix systems. Default value is I<oct("0777")>
 
-=item C<uid =E<gt> $uid>
+=item I<uid =E<gt> $uid>
 
 The option C<uid> sets the owner of the file with C<$uid>. The default value is whatever C<POSIX::getuid()> returns.
 
-=item C<gid =E<gt> $gid>
+=item I<gid =E<gt> $gid>
 
 The option C<gid> sets the owning group of the file with C<$gid>. The default value is whatever C<POSIX::getgid()> returns
 
-=item C<atime =E<gt> $time>
+=item I<atime =E<gt> $time>
 
 The option C<atime> set the access time with C<$time>. The default value is the value returned by C<time()> at the moment of file creation
 
-=item C<ctime =E<gt> $time>. 
+=item I<ctime =E<gt> $time>. 
 
 The option C<ctime> set the create time with C<$time>. The default value is the value returned by C<time()> at the moment of file creation
 
-=item C<mtime =E<gt> $time>
+=item I<mtime =E<gt> $time>
 
 The option C<mtime> set the modified time with C<$time>. The default value is the value returned by C<time()> at the moment of file creation
 
@@ -155,12 +155,12 @@ sub mock_file {
 
     my $content = $args{content} || '';
     $args{content} = \$content;
-    $args{access} ||= 7;
-    $args{uid}    ||= getuid();
-    $args{gid}    ||= getgid();
-    $args{ctime}  ||= time();
-    $args{mtime}  ||= time();
-    $args{atime}  ||= time();
+    $args{mode}  ||= oct("777");
+    $args{uid}   ||= getuid();
+    $args{gid}   ||= getgid();
+    $args{ctime} ||= time();
+    $args{mtime} ||= time();
+    $args{atime} ||= time();
     $args{type} = 'f';
 
     my ( $vol, $dir, $name ) = File::Spec->splitpath($path);
@@ -169,8 +169,8 @@ sub mock_file {
 
     # Mock the route to it
     my $entry = mock_dir $dir_path => (
-        uid     => $args{uid},
-        gid     => $args{gid},
+        uid => $args{uid},
+        gid => $args{gid},
     );
 
     $entry->{$name} = \%args;
@@ -220,23 +220,31 @@ sub _closedir {
 
 sub _mkdir { }
 
-sub _open (\[*$];@$) {
-    my ( $fh, $access, $name ) = @_;
+sub _open (*;$@) {
+    my $fh = \$_[0];
+    my $compound = join( " ", $_[1], $_[2] );
 
-    $name ||= '';
-    my $compound = "$access $name";
-
+    my $access;
+    my $path;
     if ( $compound =~ /\s*(<|>|>>|\+<|\+>|\+>>)?\s*(\S+)\s*/ ) {
         $access = $1 || '<';
-        $name = $2;
+        $path = File::Spec->rel2abs($2);
     }
     else {
         die 'Unexpected open() parameters for file mocking';
     }
 
-    my $entry = _getpath($name);
+    my $file = _get_path($path);
+    my $dir  = _get_parent_path($path);
 
-    if ( not defined $entry ) {
+    # Directory not exists
+    if ( not $dir ) {
+        $! = 2;
+        return 0;
+    }
+
+    # Access
+    unless ( _can_open( $file, $dir, $access ) ) {
         $! = 2;
         return 0;
     }
@@ -244,10 +252,21 @@ sub _open (\[*$];@$) {
     return CORE::open( $$fh, $access, $entry->{content} );
 }
 
-sub _opendir (\[*$];$) {
-    my ( $dh, $path ) = @_;
+sub _can_open {
+    my ( $file, $dir, $access ) = @_;
 
-    my $entry = _getpath($path);
+    return 1 if $access eq '<'  and _can_read_file($file);
+    return 1 if $access eq '+<' and _can_read_file($file) and _can_write($file);
+    return 1 if _can_write($file);
+    return 1 if _can_write($dir);
+
+}
+
+sub _opendir (*$) {
+    my $dh   = \$_[0];
+    my $path = $_[1];
+
+    my $entry = _get_path($path);
 
     if ( not defined $entry ) {
         $! = 2;
@@ -256,7 +275,7 @@ sub _opendir (\[*$];$) {
 
     my $dir_handle = {
         index   => 0,
-        content => [ '.', '..' ],
+        content => [ File::Spec->curdir, File::Spec->updir, ],
     };
 
     foreach ( keys %{ $entry->{content} } ) {
@@ -331,7 +350,16 @@ sub _unlink { }
 
 sub _utime { }
 
-sub _getpath {
+sub _get_parent_path {
+    my $path = shift;
+
+    my ( $vol, $dir ) = File::Spec->splitpath($path);
+    my $parent_path = File::Spec->catpath( $vol, $dir );
+
+    return _get_path($path);
+}
+
+sub _get_path {
     my $path = shift;
 
     my ( $vol, $dir, $file ) = File::Spec->splitpath($path);
@@ -372,19 +400,7 @@ sub _calculate_size {
 
 =head1 SUBROUTINES/METHODS
 
-=head2 function1
-
 =cut
-
-sub function1 {
-}
-
-=head2 function2
-
-=cut
-
-sub function2 {
-}
 
 =head1 AUTHOR
 
